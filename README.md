@@ -1,18 +1,22 @@
 # Microsoft meteor package
-__An implementation of the Microsoft OAuth flow__
+__An implementation of the Microsoft OAuth flow using the v2.0 authentication endpoint preview__
 
 [![Build Status][travis-image]][travis-url]
 
 ## Getting started
 
-Add the package to meteor
+This package is experimental and is not on Atmosphere (the original q42 package is). Add the package to meteor by cloning into the `packages` directory in your Meteor app and running.
 ```
-meteor add q42:microsoft
+meteor add ghobbs:microsoft
 ```
+
+## Why v2.0?
+
+v2.0 is in preview right now, and it only works with a [handful of APIs](https://msdn.microsoft.com/en-us/office/office365/howto/authenticate-office-365-apis-using-v2). However, the v2.0 API works with the super-useful Graph and Outlook APIs, and provides a single interface for servicing work, school and personal Microsoft accounts. If you want to plug into Outlook and reach the most users, the v2.0 API might be your best bet, even though it is in preview (see references).
 
 ## Basic usage
 
-The usage is pretty much the same as all other OAuth flow implementations for meteor. It's inspired by the official Google meteor package.
+The usage is pretty much the same as all other OAuth flow implementations for meteor. It's almost completely copied from Q42's package for authenticating with the v1.0 API, which was inspired by the official Google meteor package.
 Basically you can use:
 
 ```javascript
@@ -20,19 +24,18 @@ var callback = Accounts.oauth.credentialRequestCompleteHandler(callback);
 Microsoft.requestCredential(options, callback);
 ```
 
-For examples and more information on what options you can use, check out: [q42:accounts-microsoft](https://github.com/Q42/meteor-accounts-microsoft).
 
 ## References
 
-### Accounts package
+### Original Microsoft endpoint package
 
-* [q42:accounts-microsoft](https://github.com/Q42/meteor-accounts-microsoft)
+* [q42:microsoft](https://github.com/Q42/meteor-microsoft)
 
 ### Microsoft REST documentation
 
-* [REST Reference](https://msdn.microsoft.com/en-us/library/hh243648.aspx)
-* [Signing users in](https://msdn.microsoft.com/en-us/library/office/dn659750.aspx)
-* [Getting user data](https://msdn.microsoft.com/en-us/library/office/dn659736.aspx)
+* [v2.0 authentication endpoint](https://msdn.microsoft.com/en-us/office/office365/howto/authenticate-office-365-apis-using-v2)
+* [More information on available scopes](https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-scopes/)
+* [Getting Started with Mail, Calendar, and Contacts REST APIs](https://dev.outlook.com/restapi/getstarted)
 
-[travis-url]: https://travis-ci.org/Q42/meteor-microsoft
-[travis-image]: http://img.shields.io/travis/Q42/meteor-microsoft.svg
+[travis-url]: https://travis-ci.org/gwhobbs/meteor-microsoft
+[travis-image]: http://img.shields.io/travis/gwhobbs/meteor-microsoft.svg

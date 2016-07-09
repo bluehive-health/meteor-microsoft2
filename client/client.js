@@ -1,4 +1,3 @@
-// https://msdn.microsoft.com/en-us/library/office/dn659750.aspx
 Microsoft = {
 
     serviceName: 'microsoft',
@@ -10,7 +9,7 @@ Microsoft = {
     //   error.
 
     requestCredential: function (options, credentialRequestCompleteCallback) {
-        
+
         // support both (options, callback) and (callback).
         if (!credentialRequestCompleteCallback && typeof options === 'function') {
             credentialRequestCompleteCallback = options;
@@ -45,12 +44,12 @@ Microsoft = {
 
 var getLoginUrlOptions = function(loginStyle, credentialToken, config, options) {
 
-    // Permission scopes can be found here: https://msdn.microsoft.com/en-us/library/hh243648.aspx
+    // Permission scopes can be found here: https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-scopes/
     // Per default we need the user to be able to sign in
-    var scope = ['wl.signin'];
+    var scope = ['openid', 'email', 'profile'];
     // If requestOfflineToken is set to true, we request a refresh token through the wl.offline_access scope
     if (options.requestOfflineToken) {
-        scope.push('wl.offline_access');
+        scope.push('offline_access');
     }
     // All other request permissions in the options object is afterward parsed
     if (options.requestPermissions) {
@@ -76,7 +75,6 @@ var getLoginUrlOptions = function(loginStyle, credentialToken, config, options) 
     });
 
     // Create all the necessary url options
-    // https://msdn.microsoft.com/en-us/library/office/dn659750.aspx
     _.extend(loginUrlParameters, {
         response_type: 'code',
         client_id:  config.clientId,
@@ -85,7 +83,7 @@ var getLoginUrlOptions = function(loginStyle, credentialToken, config, options) 
         state: OAuth._stateParam(loginStyle, credentialToken, options.redirectUrl)
     });
 
-    return 'https://login.live.com/oauth20_authorize.srf?' +
+    return 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +
         _.map(loginUrlParameters, function(value, param){
             return encodeURIComponent(param) + '=' + encodeURIComponent(value);
         }).join('&');

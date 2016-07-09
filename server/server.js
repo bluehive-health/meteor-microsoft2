@@ -1,17 +1,35 @@
 Microsoft = {
 
     serviceName: 'microsoft',
+    tokenURI: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+    authURI: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
     // https://msdn.microsoft.com/en-us/library/office/dn659736.aspx
-    whitelistedFields: ['id', 'emails', 'first_name', 'last_name', 'name', 'gender', 'locale'],
+    whitelistedFields: ['id', 'mail', 'displayName', 'givenName', 'surname', 'jobTitle', 'mobilePhone', 'userPrincipalName'],
 
     retrieveCredential: function(credentialToken, credentialSecret) {
         return OAuth.retrieveCredential(credentialToken, credentialSecret);
+    },
+
+    getConfiguration() {
+      var config = ServiceConfiguration.configurations.findOne({service: Microsoft.serviceName});
+
+      if (!config && !returnNullIfMissing)
+        throw new ServiceConfiguration.ConfigError();
+      else if (!config && returnNullIfMissing)
+        return null;
+
+      // MUST be "popup" - currently Microsoft does not allow for url parameters
+      // in redirect URI's. If a null popup style is assigned, then the URL
+      // parameter "close" is appended and authentication will fail.
+      config.loginStyle = "popup";
+
+      return config;
     }
 };
 
-OAuth.registerService(Microsoft.serviceName, 2, null, function(query) {
+OAuth.registerService(Microsoft.serviceName, 2, null, function({ code }) {
 
-    var response = getTokens(query),
+    var response = getTokensFromCode(code),
         expiresAt = (+new Date) + (1000 * parseInt(response.expiresIn, 10)),
         identity = getIdentity(response.accessToken),
         serviceData = {
@@ -30,12 +48,26 @@ OAuth.registerService(Microsoft.serviceName, 2, null, function(query) {
     if (response.refreshToken)
         serviceData.refreshToken = response.refreshToken;
 
+    console.log(serviceData);
+
     return {
         serviceData: serviceData,
-        options: {profile: {name: identity.name}}
+        // options: {profile: {name: identity.name}}
     };
 });
 
+// returns an object containing:
+// - accessToken
+// - expiresIn: lifetime of token in seconds
+// - refreshToken, if this is the first authorization request
+// - idToken
+// - scope
+const getTokensFromCode = code => {
+  return Microsoft.http.getTokensBase({
+    grant_type: 'authorization_code',
+    code,
+  });
+};
 // returns an object containing:
 // - accessToken
 // - expiresIn: lifetime of token in seconds
@@ -49,7 +81,7 @@ var getTokens = function (query) {
     var response;
     try {
         response = HTTP.post(
-            "https://login.live.com/oauth20_token.srf", {params: {
+            Microsoft.tokenURI, {params: {
                 code: query.code,
                 client_id: config.clientId,
                 client_secret: OAuth.openSecret(config.secret),
@@ -66,11 +98,13 @@ var getTokens = function (query) {
     if (response.data.error) { // if the http response was a json object with an error attribute
         throw new Error("Failed to complete OAuth handshake with Microsoft. " + response.data.error);
     } else {
+      console.log(response.data);
         return {
             accessToken: response.data.access_token,
             refreshToken: response.data.refresh_token,
             expiresIn: response.data.expires_in,
-            idToken: response.data.id_token
+            idToken: response.data.id_token,
+            scope: response.data.scope,
         };
     }
 };
@@ -78,8 +112,8 @@ var getTokens = function (query) {
 var getIdentity = function (accessToken) {
     try {
         return HTTP.get(
-            "https://apis.live.net/v5.0/me",
-            { params: { access_token: accessToken } }).data;
+            "https://graph.microsoft.com/v1.0/me",
+            { headers: { Authorization: 'Bearer ' + accessToken } }).data;
     } catch (err) {
         throw _.extend(
             new Error("Failed to fetch identity from Microsoft. " + err.message),
