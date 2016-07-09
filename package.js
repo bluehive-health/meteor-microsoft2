@@ -1,8 +1,8 @@
 Package.describe({
-  name: 'q42:microsoft',
+  name: 'ghobbs:microsoft',
   version: '1.0.1',
-  summary: 'An implementation of the Microsoft OAuth flow.',
-  git: 'https://github.com/Q42/meteor-microsoft',
+  summary: 'An implementation of the Microsoft OAuth flow using the v2.0 authorization endpoint.',
+  git: 'https://github.com/gwhobbs/meteor-microsoft',
   documentation: 'README.md'
 });
 
@@ -19,14 +19,20 @@ Package.onUse(function(api) {
   api.export('Microsoft');
 
   api.addFiles('client/configure.html', 'client');
-  api.addFiles('server/server.js', 'server');
+  api.addFiles([
+    'server/server.js',
+    'server/http.js',
+    'server/tokens.js',
+    'server/graph/graph.js',
+    'server/graph/classes.js',
+  ], 'server');
   api.addFiles(['client/client.js', 'client/configure.js'], 'client');
 });
 
 Package.onTest(function(api) {
   api.use('tinytest');
   api.use('ecmascript');
-  api.use('q42:microsoft');
+  api.use('ghobbs:microsoft');
 
   // Tests will follow soon!
   api.addFiles([]);
