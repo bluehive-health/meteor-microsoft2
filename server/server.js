@@ -48,8 +48,6 @@ OAuth.registerService(Microsoft.serviceName, 2, null, function({ code }) {
     if (response.refreshToken)
         serviceData.refreshToken = response.refreshToken;
 
-    console.log(serviceData);
-
     return {
         serviceData: serviceData,
         // options: {profile: {name: identity.name}}
@@ -98,7 +96,6 @@ var getTokens = function (query) {
     if (response.data.error) { // if the http response was a json object with an error attribute
         throw new Error("Failed to complete OAuth handshake with Microsoft. " + response.data.error);
     } else {
-      console.log(response.data);
         return {
             accessToken: response.data.access_token,
             refreshToken: response.data.refresh_token,

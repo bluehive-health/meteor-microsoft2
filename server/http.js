@@ -14,7 +14,7 @@ Microsoft.http = {
       response = HTTP.call(method, url, options)
     } catch (err) {
       const details = JSON.stringify({ url, options, method });
-      throw new Meteor.Error('microsoft:failed HTTP request', err.message, details);
+      throw new Meteor.Error('microsoft.http-request.', err.message, details);
     }
 
     return response.data || response;
@@ -58,7 +58,6 @@ Microsoft.http = {
     };
     const requestBody = _.extend(baseParams, additionalParams);
     const response = Microsoft.http.callBase('POST', Microsoft.tokenURI, { params: requestBody });
-
     return {
       accessToken: response.access_token,
       refreshToken: response.refresh_token,

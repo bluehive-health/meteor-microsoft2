@@ -2,6 +2,9 @@ Microsoft = {
 
     serviceName: 'microsoft',
 
+    graph: { authUrl: 'https://graph.microsoft.com/' },
+    outlook: { authUrl: 'https://outlook.office.com/' },
+
     // Request Microsoft credentials for the user
     // @param options {optional}
     // @param credentialRequestCompleteCallback {Function} Callback function to call on
@@ -46,7 +49,7 @@ var getLoginUrlOptions = function(loginStyle, credentialToken, config, options) 
 
     // Permission scopes can be found here: https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-scopes/
     // Per default we need the user to be able to sign in
-    var scope = ['openid', 'email', 'profile'];
+    var scope = [Microsoft.graph.authUrl + 'User.Read'];
     // If requestOfflineToken is set to true, we request a refresh token through the wl.offline_access scope
     if (options.requestOfflineToken) {
         scope.push('offline_access');
@@ -54,6 +57,14 @@ var getLoginUrlOptions = function(loginStyle, credentialToken, config, options) 
     // All other request permissions in the options object is afterward parsed
     if (options.requestPermissions) {
         scope = _.union(scope, options.requestPermissions);
+    }
+
+    if (options.requestGraphPermissions) {
+      scope = _.union(scope, options.requestGraphPermissions.map( scope => Microsoft.graph.authUrl + scope ));
+    }
+
+    if (options.requestOutlookPermissions) {
+      scope = _.union(scope, options.requestOutlookPermissions.map( scope => Microsoft.outlook.authUrl + scope ));
     }
 
     var loginUrlParameters = {};
