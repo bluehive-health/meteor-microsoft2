@@ -1,5 +1,5 @@
 Package.describe({
-  name: 'ghobbs:microsoft',
+  name: 'ghobbs:microsoft2',
   version: '1.0.1',
   summary: 'An implementation of the Microsoft OAuth flow using the v2.0 authorization endpoint.',
   git: 'https://github.com/gwhobbs/meteor-microsoft',
@@ -32,7 +32,7 @@ Package.onUse(function(api) {
 Package.onTest(function(api) {
   api.use('tinytest');
   api.use('ecmascript');
-  api.use('ghobbs:microsoft');
+  api.use('ghobbs:microsoft2');
 
   // Tests will follow soon!
   api.addFiles([]);

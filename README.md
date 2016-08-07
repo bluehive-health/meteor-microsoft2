@@ -7,7 +7,7 @@ __An implementation of the Microsoft OAuth flow using the v2.0 authentication en
 
 This package is experimental and is not on Atmosphere (the original q42 package is). Add the package to meteor by cloning into the `packages` directory in your Meteor app and running.
 ```
-meteor add ghobbs:microsoft
+meteor add ghobbs:microsoft2
 ```
 
 ## Why v2.0?
