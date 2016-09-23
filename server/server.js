@@ -50,7 +50,7 @@ OAuth.registerService(Microsoft.serviceName, 2, null, function({ code }) {
 
     return {
         serviceData: serviceData,
-        // options: {profile: {name: identity.name}}
+        options: {profile: {name: identity.displayName}}
     };
 });
 
