@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ghobbs:microsoft2',
-  version: '1.0.1',
+  version: '1.0.2',
   summary: 'An implementation of the Microsoft OAuth flow using the v2.0 authorization endpoint.',
   git: 'https://github.com/gwhobbs/meteor-microsoft',
   documentation: 'README.md'
