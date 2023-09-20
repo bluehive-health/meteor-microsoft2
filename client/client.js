@@ -1,3 +1,24 @@
+import { 
+    Meteor
+} from 'meteor/meteor';
+
+import {
+    Random
+} from 'meteor/random';
+
+import {
+    ServiceConfiguration
+} from 'meteor/service-configuration';
+
+import {
+    OAuth
+} from 'meteor/oauth';
+
+import {
+    Accounts
+} from 'meteor/accounts-base';
+
+
 Microsoft = {
 
     serviceName: 'microsoft',
@@ -94,3 +115,5 @@ Meteor.loginWithMicrosoft = function(options, callback) {
     var credentialRequestCompleteCallback = Accounts.oauth.credentialRequestCompleteHandler(callback);
     Microsoft.requestCredential(options, credentialRequestCompleteCallback);
 };
+
+Accounts.oauth.registerService('microsoft');
