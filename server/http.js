@@ -1,13 +1,5 @@
 Microsoft.http = {
-  callBase(method, url, options) {
-    // if (method === 'POST') {
-    //   options = options || {};
-    //   options.headers = {
-    //     ...options.headers,
-    //     'Content-type': 'application/json', // required for POST requests
-    //   };
-    // }
-
+  callBase(method, url, options = {}) {
     let response;
 
     try {
@@ -19,11 +11,10 @@ Microsoft.http = {
 
     return response.data || response;
   },
-  callAuthenticated(method, url, accessToken, options) {
-    options = options || {};
+  callAuthenticated(method, url, accessToken, options = {}) {
     options.headers = {
       ...options.headers,
-      Authorization: 'Bearer ' + accessToken,
+      Authorization: `Bearer ${accessToken}`,
     };
 
     return Microsoft.http.callBase(method, url, options);
@@ -33,20 +24,19 @@ Microsoft.http = {
     let data = Microsoft.http.callAuthenticated(method, url, accessToken, options);
 
     if (data.error && data.error.code === 'InvalidAuthenticationToken') {
-      // try once to get new access token
       Microsoft.updateUserAccessToken(user);
       data = Microsoft.http.callAuthenticated(method, url, accessToken, options);
     }
 
     if (data.error) {
-      throw new Meteor.Error('microsoft.http-response.' + data.error.code,
-        'Error calling Microsoft API: ' + data.error.message);
+      throw new Meteor.Error(`microsoft.http-response.${data.error.code}`,
+        `Error calling Microsoft API: ${data.error.message}`);
     }
 
     return data;
   },
   callAsUserId(method, url, userId, options) {
-    var user = Meteor.users.findOne(userId);
+    const user = Meteor.users.findOne(userId);
     return Microsoft.http.callAsUser(method, url, user, options);
   },
   getTokensBase(additionalParams) {
@@ -56,7 +46,7 @@ Microsoft.http = {
       client_secret: OAuth.openSecret(config.secret),
       redirect_uri: OAuth._redirectUri(Microsoft.serviceName, config),
     };
-    const requestBody = _.extend(baseParams, additionalParams);
+    const requestBody = { ...baseParams, ...additionalParams };
     const response = Microsoft.http.callBase('POST', Microsoft.tokenURI, { params: requestBody });
     return {
       accessToken: response.access_token,
