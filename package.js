@@ -1,13 +1,13 @@
 Package.describe({
-  name: 'ghobbs:microsoft2',
+  name: 'bluehive-health:microsoft2',
   version: '1.0.2',
   summary: 'An implementation of the Microsoft OAuth flow using the v2.0 authorization endpoint.',
-  git: 'https://github.com/gwhobbs/meteor-microsoft',
+  git: 'https://github.com/bluehive-health/meteor-microsoft2',
   documentation: 'README.md'
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('1.2.1');
+  api.versionsFrom('2.12');
   api.use('ecmascript');
   api.use('templating', 'client');
   api.use('random', 'client');
@@ -27,13 +27,4 @@ Package.onUse(function(api) {
     'server/graph/classes.js',
   ], 'server');
   api.addFiles(['client/client.js', 'client/configure.js'], 'client');
-});
-
-Package.onTest(function(api) {
-  api.use('tinytest');
-  api.use('ecmascript');
-  api.use('ghobbs:microsoft2');
-
-  // Tests will follow soon!
-  api.addFiles([]);
 });
