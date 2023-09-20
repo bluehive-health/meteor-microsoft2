@@ -5,15 +5,8 @@ Microsoft = {
     graph: { authUrl: 'https://graph.microsoft.com/' },
     outlook: { authUrl: 'https://outlook.office.com/' },
 
-    // Request Microsoft credentials for the user
-    // @param options {optional}
-    // @param credentialRequestCompleteCallback {Function} Callback function to call on
-    //   completion. Takes one argument, credentialToken on success, or Error on
-    //   error.
-
     requestCredential: function (options, credentialRequestCompleteCallback) {
 
-        // support both (options, callback) and (callback).
         if (!credentialRequestCompleteCallback && typeof options === 'function') {
             credentialRequestCompleteCallback = options;
             options = {};
@@ -21,16 +14,13 @@ Microsoft = {
             options = {};
         }
 
-        // Fetch the service configuration from the database
         var config = ServiceConfiguration.configurations.findOne({service: Microsoft.serviceName});
-        // If none exist, throw the default ServiceConfiguration error
         if (!config) {
             credentialRequestCompleteCallback &&
             credentialRequestCompleteCallback(new ServiceConfiguration.ConfigError());
             return;
         }
 
-        // Generate a token to be used in the state and the OAuth flow
         var credentialToken = Random.secret(),
             loginStyle = OAuth._loginStyle(Microsoft.serviceName, config, options);
 
@@ -47,55 +37,60 @@ Microsoft = {
 
 var getLoginUrlOptions = function(loginStyle, credentialToken, config, options) {
 
-    // Permission scopes can be found here: https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-scopes/
-    // Per default we need the user to be able to sign in
     var scope = [Microsoft.graph.authUrl + 'User.Read'];
-    // If requestOfflineToken is set to true, we request a refresh token through the wl.offline_access scope
     if (options.requestOfflineToken) {
         scope.push('offline_access');
     }
-    // All other request permissions in the options object is afterward parsed
     if (options.requestPermissions) {
-        scope = _.union(scope, options.requestPermissions);
+        scope = [...new Set(scope.concat(options.requestPermissions))];
     }
 
     if (options.requestGraphPermissions) {
-      scope = _.union(scope, options.requestGraphPermissions.map( scope => Microsoft.graph.authUrl + scope ));
+      scope = [...new Set(scope.concat(options.requestGraphPermissions.map( scope => Microsoft.graph.authUrl + scope )))];
     }
 
     if (options.requestOutlookPermissions) {
-      scope = _.union(scope, options.requestOutlookPermissions.map( scope => Microsoft.outlook.authUrl + scope ));
+      scope = [...new Set(scope.concat(options.requestOutlookPermissions.map( scope => Microsoft.outlook.authUrl + scope )))];
     }
 
     var loginUrlParameters = {};
-    // First insert the ServiceConfiguration values
     if (config.loginUrlParameters){
-        _.extend(loginUrlParameters, config.loginUrlParameters)
+        Object.assign(loginUrlParameters, config.loginUrlParameters);
     }
-    // Secondly insert the options that were inserted with the function call,
-    // so they will override any ServiceConfiguration
     if (options.loginUrlParameters){
-        _.extend(loginUrlParameters, options.loginUrlParameters)
+        Object.assign(loginUrlParameters, options.loginUrlParameters);
     }
-    // Make sure no url parameter was used as an option or config
     var illegal_parameters = ['response_type', 'client_id', 'scope', 'redirect_uri', 'state'];
-    _.each(_.keys(loginUrlParameters), function (key) {
-        if (_.contains(illegal_parameters, key)) {
+    Object.keys(loginUrlParameters).forEach(function (key) {
+        if (illegal_parameters.includes(key)) {
             throw new Error('Microsoft.requestCredential: Invalid loginUrlParameter: ' + key);
         }
     });
 
-    // Create all the necessary url options
-    _.extend(loginUrlParameters, {
+    Object.assign(loginUrlParameters, {
         response_type: 'code',
         client_id:  config.clientId,
-        scope: scope.join(' '), // space delimited, everything is later urlencoded!
+        scope: scope.join(' '),
         redirect_uri: OAuth._redirectUri(Microsoft.serviceName, config),
         state: OAuth._stateParam(loginStyle, credentialToken, options.redirectUrl)
     });
 
     return 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +
-        _.map(loginUrlParameters, function(value, param){
-            return encodeURIComponent(param) + '=' + encodeURIComponent(value);
-        }).join('&');
+        Object.entries(loginUrlParameters).map(([param, value]) => `${encodeURIComponent(param)}=${encodeURIComponent(value)}`).join('&');
+};
+
+Meteor.loginWithMicrosoft = function(options, callback) {
+    if (! callback && typeof options === 'function') {
+        callback = options;
+        options = null;
+    }
+
+    if (typeof Accounts._options.restrictCreationByEmailDomain === 'string') {
+        options = Object.assign({}, options || {});
+        options.loginUrlParameters = Object.assign({}, options.loginUrlParameters || {});
+        options.loginUrlParameters.hd = Accounts._options.restrictCreationByEmailDomain;
+    }
+
+    var credentialRequestCompleteCallback = Accounts.oauth.credentialRequestCompleteHandler(callback);
+    Microsoft.requestCredential(options, credentialRequestCompleteCallback);
 };
