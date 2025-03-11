@@ -1,6 +1,6 @@
 Package.describe({
   name: 'bluehive-health:microsoft2',
-  version: '1.0.2',
+  version: '1.1.0',
   summary: 'An implementation of the Microsoft OAuth flow using the v2.0 authorization endpoint.',
   git: 'https://github.com/bluehive-health/meteor-microsoft2',
   documentation: 'README.md'
