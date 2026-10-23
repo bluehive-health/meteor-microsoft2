@@ -21,13 +21,11 @@ Microsoft = {
         return OAuth.retrieveCredential(credentialToken, credentialSecret);
     },
 
-    getConfiguration() {
-        const config = ServiceConfiguration.configurations.findOne({ service: Microsoft.serviceName });
+    async getConfiguration() {
+        const config = await ServiceConfiguration.configurations.findOneAsync({ service: Microsoft.serviceName });
 
-        if (!config && !returnNullIfMissing)
+        if (!config)
             throw new ServiceConfiguration.ConfigError();
-        else if (!config && returnNullIfMissing)
-            return null;
 
         config.loginStyle = 'popup';
 
@@ -35,11 +33,11 @@ Microsoft = {
     }
 };
 
-OAuth.registerService(Microsoft.serviceName, 2, null, function ({ code }) {
+OAuth.registerService(Microsoft.serviceName, 2, null, async function ({ code }) {
 
-    const response = getTokensFromCode(code),
+    const response = await getTokensFromCode(code),
         expiresAt = (+new Date) + (1000 * parseInt(response.expiresIn, 10)),
-        identity = getIdentity(response.accessToken);
+        identity = await getIdentity(response.accessToken);
     let serviceData = {
         accessToken: response.accessToken,
         idToken: response.idToken,
@@ -66,49 +64,11 @@ const getTokensFromCode = code => {
     });
 };
 
-const getTokens = function (query) {
-    const config = ServiceConfiguration.configurations.findOne({ service: Microsoft.serviceName });
-    if (!config) {
-        throw new ServiceConfiguration.ConfigError();
-    }
-
-    let response;
+const getIdentity = async function (accessToken) {
     try {
-        response = HTTP.post(
-            Microsoft.tokenURI, {
-                params: {
-                    code: query.code,
-                    client_id: config.clientId,
-                    client_secret: OAuth.openSecret(config.secret),
-                    redirect_uri: OAuth._redirectUri(Microsoft.serviceName, config),
-                    grant_type: 'authorization_code'
-                }
-        });
-    } catch (err) {
-        throw Object.assign(
-            new Error('Failed to complete OAuth handshake with Microsoft. ' + err.message),
-            { response: err.response }
-        );
-    }
-
-    if (response.data.error) {
-        throw new Error('Failed to complete OAuth handshake with Microsoft. ' + response.data.error);
-    } else {
-        return {
-            accessToken: response.data.access_token,
-            refreshToken: response.data.refresh_token,
-            expiresIn: response.data.expires_in,
-            idToken: response.data.id_token,
-            scope: response.data.scope,
-        };
-    }
-};
-
-const getIdentity = function (accessToken) {
-    try {
-        return HTTP.get(
+        return await Microsoft.http.callBase('GET',
             'https://graph.microsoft.com/v1.0/me',
-            { headers: { Authorization: 'Bearer ' + accessToken } }).data;
+            { headers: { Authorization: 'Bearer ' + accessToken } });
     } catch (err) {
         throw Object.assign(
             new Error('Failed to fetch identity from Microsoft. ' + err.message),

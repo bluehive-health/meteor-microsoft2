@@ -1,17 +1,17 @@
-Microsoft.getOrUpdateUserAccessToken = user => {
+Microsoft.getOrUpdateUserAccessToken = async user => {
   checkUserIsDefined(user);
   checkMicrosoftAccountIsLinked(user);
 
   if (isAccessTokenMissingOrExpired(user)) {
-    user = Microsoft.updateUserAccessToken(user); // returns updated user object
+    user = await Microsoft.updateUserAccessToken(user); // returns updated user object
   }
 
   return user.services.microsoft.accessToken;
 };
 
-Microsoft.updateUserAccessToken = user => {
-  const tokens = getTokensWithRefresh(user);
-  user = saveTokens({ tokens, user });
+Microsoft.updateUserAccessToken = async user => {
+  const tokens = await getTokensWithRefresh(user);
+  user = await saveTokens({ tokens, user });
   return user;
 };
 
@@ -41,7 +41,7 @@ function getTokensWithRefresh(user) {
   });
 }
 
-function saveTokens({ tokens, user }) {
+async function saveTokens({ tokens, user }) {
   user.services.microsoft = {
     ...user.services.microsoft,
     ...tokens, // keep additional user fields
@@ -52,6 +52,6 @@ function saveTokens({ tokens, user }) {
     },
   };
 
-  Meteor.users.update(user._id, modifier);
+  await Meteor.users.updateAsync(user._id, modifier);
   return user;
 }

@@ -7,13 +7,13 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('2.12');
+  api.versionsFrom(['2.12', '3.0']);
   api.use('ecmascript');
   api.use('templating', 'client');
   api.use('random', 'client');
   api.use('oauth2', ['client', 'server']);
   api.use('oauth', ['client', 'server']);
-  api.use('http', 'server');
+  api.use('fetch', 'server');
   api.use('service-configuration', ['client', 'server']);
 
   api.export('Microsoft');
