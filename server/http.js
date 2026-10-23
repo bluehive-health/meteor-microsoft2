@@ -1,3 +1,5 @@
+import { fetch } from 'meteor/fetch';
+
 Microsoft.http = {
   async callBase(method, url, options = {}) {
     let data;
@@ -10,7 +12,11 @@ Microsoft.http = {
       if (options.params) {
         const search = new URLSearchParams(options.params).toString();
         if (method.toUpperCase() === 'GET') {
-          requestUrl = `${url}?${search}`;
+          const parsedUrl = new URL(url);
+          if (search) {
+            parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
+          }
+          requestUrl = parsedUrl.toString();
         } else {
           body = search;
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -30,7 +36,7 @@ Microsoft.http = {
         data = text;
       }
 
-      if (!response.ok && (!data || !data.error)) {
+      if (!response.ok && !(options.allowErrorResponse && data && data.error)) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
     } catch (err) {
@@ -50,11 +56,12 @@ Microsoft.http = {
   },
   async callAsUser(method, url, user, options) {
     let accessToken = await Microsoft.getOrUpdateUserAccessToken(user);
-    let data = await Microsoft.http.callAuthenticated(method, url, accessToken, options);
+    const requestOptions = { ...options, allowErrorResponse: true };
+    let data = await Microsoft.http.callAuthenticated(method, url, accessToken, requestOptions);
 
     if (data.error && data.error.code === 'InvalidAuthenticationToken') {
       await Microsoft.updateUserAccessToken(user);
-      data = await Microsoft.http.callAuthenticated(method, url, accessToken, options);
+      data = await Microsoft.http.callAuthenticated(method, url, accessToken, requestOptions);
     }
 
     if (data.error) {
